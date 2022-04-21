@@ -1,0 +1,47 @@
+name: 💬 Improvement
+description: Propose some improvements
+title: Epic - Short description
+assignees: bil0u
+labels:
+  - Draft
+body:
+
+  - type: checkboxes
+    id: preliminary
+    attributes:
+      label: Preliminary
+      description: As the issue author,
+      options:
+        - label: I couldn't find an existing issue related to this improvement
+          required: true
+        - label: I added drawings or wireframes to help visualize the changes
+          required: false
+        - label: I added the needed resources referenced in wireframes
+          required: false
+
+  - type: markdown
+    attributes:
+      value: '---'
+
+  - type: input
+    id: what
+    attributes:
+      label: What should be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why?
+      description: Why do you think it should be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: How?
+      description: What are your suggestions?
+
+

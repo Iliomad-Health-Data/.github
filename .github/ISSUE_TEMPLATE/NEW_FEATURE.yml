@@ -1,0 +1,68 @@
+name: 🎯 New feature
+description: Ask a new feature
+title: Epic - Short description
+assignees: bil0u
+labels:
+  - Draft
+body:
+
+  - type: checkboxes
+    id: preliminary
+    attributes:
+      label: Preliminary
+      description: As the issue author,
+      options:
+        - label: I couldn't find an existing issue related to this feature
+          required: true
+        - label: I added drawings or wireframes to help visualize the changes
+          required: false
+        - label: I added the needed resources referenced in wireframes
+          required: false
+
+  - type: markdown
+    attributes:
+      value: '---'
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+    validations:
+      required: true
+
+  - type: textarea
+    id: writeups
+    attributes:
+      label: User story & Write-ups
+      description: Describe all scenarios that should be covered by the feature.
+      value: |
+        - [ ] **#1 - Title**
+              _Given_ [context]
+              _As_ [user role]
+              _When_ [action]
+              _And_ [other action]
+              _Then_ [consequence]
+              _And_ [other consequence]
+        - [ ] **#2 - Title**
+              ...
+      render: Markdown
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: Provide all needed resources to carry out the development of this feature.
+      value: |
+        ##### Wireframes
+
+        - [First view](https://design.url.here)
+        - [Second view](https://design.url.here)
+
+        ##### Assets
+
+        - [Icon](https://design.url.here)
+        - [Image](https://design.url.here)
+        - [Video](https://design.url.here)
+      render: Markdown
+
+

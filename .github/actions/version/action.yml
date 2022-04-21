@@ -1,0 +1,44 @@
+---
+name: 'Checking branch version'
+description: 'Check if the branch version respect patterns'
+
+outputs:
+  version:
+    description: 'The version number'
+    value: ${{ steps.check-version.outputs.version }}
+
+runs:
+
+  using: 'composite'
+  steps:
+
+  - id: check-version
+    uses: actions/github-script@v4
+    with:
+      script: |
+        const refBranch = context.eventName === 'pull_request' ? process.env.GITHUB_HEAD_REF : process.env.GITHUB_REF
+        const gitBranch = refBranch.replace('refs/heads/', '')
+
+        core.info(`Retained branch name: ${gitBranch}`)
+
+        const validNames = [
+          /^release\/v?(\d+\.\d+(?:\.0)?)$/,
+          /^hotfix\/v?(\d+\.\d+\.\d+)$/
+        ]
+
+        for (let regex of validNames) {
+          let match = gitBranch.match(regex)
+          if (match != null) {
+            var version = match[1]
+            if (version.match(/^\d\.\d$/)) {
+              version += '.0'
+            }
+            core.info(`Detected version : ${version}`)
+            core.setOutput('version', version);
+            return
+          }
+        }
+
+        core.setFailed(`Branch name '${gitBranch}' is badly formated.\nMust be release/[v]x.x[.0]) or hotfix/[v]x.x.x`)
+
+        

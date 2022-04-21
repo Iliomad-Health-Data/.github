@@ -1,0 +1,55 @@
+---
+name: 'Deploy → Amazon ECS'
+description: 'Deploy the previously built docker images to ECS using terraform'
+
+inputs:
+  work-dir:
+    description: 'Working directory in which the Terraform project resides'
+    required: true
+    default: './terraform'
+  aws-access-key-id:
+    description: 'AWS access key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS secret access key'
+    required: true
+  aws-region:
+    description: 'AWS Region'
+    required: true
+  app-version-tag:
+    description: 'App version tag to deploy'
+    required: true
+  proxy-version-tag:
+    description: 'App version tag to deploy'
+    required: true
+
+outputs:
+  registry:
+    description: "Registry URL"
+    value: ${{ steps.ecr-login.outputs.registry }}
+
+runs:
+
+  using: 'composite'
+  steps:
+
+  # Initalizing deployment
+  - id: tf-init
+    name: Initialing terraform
+    working-directory: ${{ inputs.work-dir }}
+    shell: bash
+    run: |
+      terraform init
+
+  # Applying deployment
+  - id: tf-apply
+    name: Applying infra changes
+    env:
+      AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+      AWS_REGION: ${{ inputs.aws-region }}
+    working-directory: ${{ inputs.work-dir }}
+    shell: bash
+    run: |
+      echo "Terraform will deploy image tagged '${{ inputs.app-version-tag }}'"
+      terraform apply -auto-approve -var app_image_tag=${{ inputs.app-version-tag }} -var proxy_image_tag=${{ inputs.proxy-version-tag }}

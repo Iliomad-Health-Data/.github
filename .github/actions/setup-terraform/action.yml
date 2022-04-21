@@ -1,0 +1,37 @@
+---
+name: 'Setup → Terraform'
+description: 'Setup the host for Terraform'
+
+inputs:
+  production:
+    description: 'If terraform is being run in production'
+    required: true
+  terra-version:
+    description: 'Version of terraform in use'
+    required: true
+  tf-api-token:
+    description: 'Terraform API token'
+    required: true
+
+runs:
+
+  using: 'composite'
+  steps:
+
+  - id: install-terraform
+    name: Installing Terraform ${{ inputs.terra-version }}
+    uses: hashicorp/setup-terraform@v1
+    with:
+      terraform_wrapper: false
+      terraform_version: ${{ inputs.terra-version }}
+      cli_config_credentials_token: ${{ inputs.tf-api-token }}
+
+  - id: select-workspace
+    name: Terraform → Select workspace
+    shell: bash
+    run: |
+      if ${{ inputs.production }}; then
+          echo "TF_WORKSPACE=prod" >> $GITHUB_ENV
+      else
+          echo "TF_WORKSPACE=staging" >> $GITHUB_ENV
+      fi

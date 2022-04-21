@@ -1,0 +1,32 @@
+---
+name: 'Quality Control'
+description: 'Checks if the codebase validate against our code standards'
+
+inputs:
+  work-dir:
+    description: 'Working directory in which the Python project resides'
+    required: true
+    default: './app'
+
+runs:
+
+  using: 'composite'
+  steps:
+
+  - id: check-pep
+    name: Running flake8
+    working-directory: ${{ inputs.work-dir }}
+    shell: bash
+    run: pipenv run lint:pep
+
+  - id: check-imports
+    name: Running isort
+    working-directory: ${{ inputs.work-dir }}
+    shell: bash
+    run: pipenv run lint:imports
+
+  - id: check-format
+    name: Running black
+    working-directory: ${{ inputs.work-dir }}
+    shell: bash
+    run: pipenv run lint:codestyle

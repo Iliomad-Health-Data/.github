@@ -1,0 +1,104 @@
+name: 🐞 Bug report
+description: Report a bug/problem
+title: Epic - Short description
+assignees: bil0u
+labels:
+  - Bug
+  - Draft
+body:
+  
+  - type: checkboxes
+    id: preliminary
+    attributes:
+      label: Preliminary
+      description: As the issue author,
+      options:
+        - label: I couldn't find an existing issue related to this bug
+          required: true
+        - label: I evaluated IMPORTANCE and URGENCY through labels
+          required: true
+        - label: I successfully reproduced the bug
+          required: true
+        - label: I identified the probable bug source
+          required: false
+        - label: I determined a fix strategy
+          required: false
+  
+  - type: markdown
+    attributes:
+      value: '---'
+  
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      description: 'What device are you seeing the problem on?'
+      multiple: true
+      options:
+        - Computer
+        - Tablet
+        - Smartphone
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      description: 'What OS are you seeing the problem on?'
+      multiple: true
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: 'What browser are you seeing the problem on?'
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Opera
+        - Edge
+        - Internet Explorer
+    validations:
+      required: true
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: What happened?
+    validations:
+      required: true
+  
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Which steps do we need to take to reproduce this error?
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      render: Markdown
+  
+  - type: textarea
+    id: expectations
+    attributes:
+      label: Expectations
+      description: What did you expected to happen?
+  
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: If applicable, provide relevant log output. No need for backticks here.
+      render: Shell
