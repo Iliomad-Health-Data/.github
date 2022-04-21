@@ -1,5 +1,5 @@
 ---
-name: "🌟 New Feature"
+name: "🌟 Feature complete"
 about: "A completed feature needs to be merged"
 title: "Feature #000"
 assignees: "bil0u"
