@@ -5,7 +5,7 @@ description: 'Sends a notification on an MS Teams channel'
 inputs:
   # Config
   gh-token:
-    description: 'MS Teams channel webhook URI'
+    description: 'Github token'
     required: true
   ms-teams-webhook-uri:
     description: 'MS Teams channel webhook URI'
