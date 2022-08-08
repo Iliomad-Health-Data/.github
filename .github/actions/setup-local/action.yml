@@ -1,46 +1,43 @@
 ---
-name: 'Setup → Local'
-description: 'Setup the host for local use with pipenv'
+name: "Setup → Local"
+description: "Setup the host for local use with poetry"
 
 inputs:
   work-dir:
-    description: 'Working directory in which the Python project resides'
+    description: "Working directory in which the Python project resides"
     required: true
-    default: './app'
+    default: "./app"
   py-version:
-    description: 'Version of python in use'
+    description: "Version of python in use"
     required: true
-
 
 runs:
-
-  using: 'composite'
+  using: "composite"
   steps:
+    - id: install-python
+      name: Installing Python ${{ inputs.py-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ inputs.py-version }}
 
-  - id: install-python
-    name: Installing Python ${{ inputs.py-version }}
-    uses: actions/setup-python@v2
-    with:
-      python-version: ${{ inputs.py-version }}
+    - id: install-packages
+      name: Install poetry
+      working-directory: ${{ inputs.work-dir }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade poetry wheel
 
-  - id: install-packages
-    name: Install pipenv
-    working-directory: ${{ inputs.work-dir }}
-    shell: bash
-    run: |
-      python -m pip install --upgrade pipenv wheel
+    - id: cache-project-requirements
+      uses: actions/cache@v2
+      with:
+        path: ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-python-${{ inputs.py-version }}-poetry-${{ hashFiles('**/Pipfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ inputs.py-version }}-poetry-
 
-  - id: cache-project-requirements
-    uses: actions/cache@v2
-    with:
-      path: ~/.local/share/virtualenvs
-      key: ${{ runner.os }}-python-${{ inputs.py-version }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-python-${{ inputs.py-version }}-pipenv-
-
-  - id: install-project-requirements
-    name: Installing project requirements
-    working-directory: ${{ inputs.work-dir }}
-    shell: bash
-    run: |
-      pipenv install --pre --dev
+    - id: install-project-requirements
+      name: Installing project requirements
+      working-directory: ${{ inputs.work-dir }}
+      shell: bash
+      run: |
+        poetry install
