@@ -1,17 +1,17 @@
 ---
-name: 'Build & Push'
-description: 'Build and push docker images to a registry'
+name: "Build & Push"
+description: "Build and push docker images to a registry"
 
 inputs:
   # Login
   aws-access-key-id:
-    description: 'AWS access key ID'
+    description: "AWS access key ID"
     required: true
   aws-secret-access-key:
-    description: 'AWS secret access key'
+    description: "AWS secret access key"
     required: true
   aws-region:
-    description: 'AWS Region'
+    description: "AWS Region"
     required: true
   # Build
   repository:
@@ -23,15 +23,15 @@ inputs:
   path:
     description: "Path of the directory that contains the Dockerfile"
     required: true
-    default: '.'
+    default: "."
   dockerfile:
     description: "Name of the Dockerfile"
     required: true
-    default: 'Dockerfile'
+    default: "Dockerfile"
   push:
     description: "Will push the image if true"
     required: true
-    default: 'true'
+    default: "true"
 
 outputs:
   # Login
@@ -49,68 +49,65 @@ outputs:
     description: "Image labels"
     value: ${{ steps.generate-metadata.outputs.labels }}
 
-
 runs:
-
-  using: 'composite'
+  using: "composite"
   steps:
+    # AWS credentials setup
+    - id: aws-setup
+      name: Setting up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id}}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
 
-  # AWS credentials setup
-  - id: aws-setup
-    name: Setting up AWS credentials
-    uses: aws-actions/configure-aws-credentials@v1
-    with:
-      aws-access-key-id: ${{ inputs.aws-access-key-id}}
-      aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-      aws-region: ${{ inputs.aws-region }}
+    # Login to ECR
+    - id: ecr-login
+      name: Authenticating against ECR registry
+      uses: aws-actions/amazon-ecr-login@v1
 
-  # Login to ECR
-  - id: ecr-login
-    name: Authenticating against ECR registry
-    uses: aws-actions/amazon-ecr-login@v1
+    # Docker buildx setup
+    - id: buildx-setup
+      name: Setting up Docker buildx
+      uses: docker/setup-buildx-action@v2
+      with:
+        install: true
+        config-inline: |
+          [worker.oci]
+            max-parallelism = 4
 
-  # Docker buildx setup
-  - id: buildx-setup
-    name: Setting up Docker buildx
-    uses: docker/setup-buildx-action@v1
-    with:
-      install: true
-      config-inline: |
-        [worker.oci]
-          max-parallelism = 4
+    # # Caching setup
+    # - id: cache-setup
+    #   name: Cache Docker layers
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: /tmp/.buildx-cache
+    #     key: ${{ runner.os }}-single-buildx-${{ github.sha }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-single-buildx
 
-  # # Caching setup
-  # - id: cache-setup
-  #   name: Cache Docker layers
-  #   uses: actions/cache@v2
-  #   with:
-  #     path: /tmp/.buildx-cache
-  #     key: ${{ runner.os }}-single-buildx-${{ github.sha }}
-  #     restore-keys: |
-  #       ${{ runner.os }}-single-buildx
+    # Generating image metadata
+    - id: generate-metadata
+      name: Setup → Image metadata
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ steps.ecr-login.outputs.registry }}/${{ inputs.repository }}
+        tags: ${{ inputs.tags }}
 
-  # Generating image metadata
-  - id: generate-metadata
-    name: Setup → Image metadata
-    uses: docker/metadata-action@v3
-    with:
-      images: ${{ steps.ecr-login.outputs.registry }}/${{ inputs.repository }}
-      tags: ${{ inputs.tags }}
-
-  # Building and pushing image to ECR
-  - name: Run → Image build & push
-    uses: docker/build-push-action@v2
-    with:
-      push: ${{ inputs.push }}
-      context: ${{ inputs.path }}
-      file: ${{ inputs.path }}/${{ inputs.dockerfile }}
-      builder: ${{ steps.buildx-setup.outputs.name }}
-      tags: ${{ steps.generate-metadata.outputs.tags }}
-      labels: ${{ steps.generate-metadata.outputs.labels }}
-      cache-to: type=gha,mode=max
-      cache-from: type=gha
-      # cache-from: type=local,src=/tmp/.buildx-cache
-      # cache-to: type=local,dest=/tmp/.buildx-cache-new
+    # Building and pushing image to ECR
+    - name: Run → Image build & push
+      uses: docker/build-push-action@v4
+      with:
+        push: ${{ inputs.push }}
+        context: ${{ inputs.path }}
+        file: ${{ inputs.path }}/${{ inputs.dockerfile }}
+        builder: ${{ steps.buildx-setup.outputs.name }}
+        tags: ${{ steps.generate-metadata.outputs.tags }}
+        labels: ${{ steps.generate-metadata.outputs.labels }}
+        cache-to: type=gha,mode=max
+        cache-from: type=gha
+        # cache-from: type=local,src=/tmp/.buildx-cache
+        # cache-to: type=local,dest=/tmp/.buildx-cache-new
 
   # # Temp fix
   # # https://github.com/docker/build-push-action/issues/252

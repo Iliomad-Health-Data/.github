@@ -1,99 +1,95 @@
 ---
-name: 'Notify → MS Teams'
-description: 'Sends a notification on an MS Teams channel'
+name: "Notify → MS Teams"
+description: "Sends a notification on an MS Teams channel"
 
 inputs:
   # Config
   gh-token:
-    description: 'Github token'
+    description: "Github token"
     required: true
   ms-teams-webhook-uri:
-    description: 'MS Teams channel webhook URI'
+    description: "MS Teams channel webhook URI"
     required: true
   timezone:
-    description: 'Timezone to be used for the message timestamp'
+    description: "Timezone to be used for the message timestamp"
     required: true
     default: Europe/Paris
   # Content
   message:
-    description: 'Message to send'
+    description: "Message to send"
     required: true
   msg-arg:
-    description: 'Extra value to pass'
+    description: "Extra value to pass"
     required: true
-    default: ''
+    default: ""
   status:
-    description: 'Choose between [info|warning|error|success]'
+    description: "Choose between [info|warning|error|success]"
     required: true
-    default: 'info'
+    default: "info"
 
   # 007bff for info,
   # 28a745 success,
   # ffc107 warning,
   # dc3545 error
 
-
 runs:
-
-  using: 'composite'
+  using: "composite"
   steps:
+    - id: compile-params
+      shell: bash
+      run: |
+        msg=${{ inputs.message }}
+        status=${{ inputs.status }}
+        case $msg in
+          'deploy-start')
+            echo 'MSG=Deployment initiated on ${{ inputs.msg-arg }} &#x267B;' >> $GITHUB_OUTPUT
+            status='info'
+            ;;
+          'build-failed')
+            echo 'MSG=Build of ${{ inputs.msg-arg }} has failed &#x1F4E6 &#x274C;' >> $GITHUB_OUTPUT
+            status='warning'
+            ;;
+          'deploy-failed')
+            echo 'MSG=Deploy on ${{ inputs.msg-arg }} has failed &#x1F680 &#x274C;' >> $GITHUB_OUTPUT
+            status='error'
+            ;;
+          'deploy-succeed')
+            echo 'MSG=Deployment on ${{ inputs.msg-arg }} has succeed &#x1F680 &#x2705;' >> $GITHUB_OUTPUT
+            status='success'
+            ;;
+          'deploy-cancelled')
+            echo 'MSG=Deployment on ${{ inputs.msg-arg }} was canceled &#x126A0 &#x1F6D1;' >> $GITHUB_OUTPUT
+            status='warning'
+            ;;
+          *) echo 'MSG=$msg' >> $GITHUB_OUTPUT ;;
+        esac
+        case $status in
+          'warning') echo 'COLOR::ffc107' >> $GITHUB_OUTPUT ;;
+          'error') echo 'COLOR::dc3545' >> $GITHUB_OUTPUT ;;
+          'success') echo 'COLOR::28a745' >> $GITHUB_OUTPUT ;;
+          *) echo 'COLOR::007bff' >> $GITHUB_OUTPUT ;;
+        esac
 
-  - id: compile-params
-    shell: bash
-    run: |
-      msg=${{ inputs.message }}
-      status=${{ inputs.status }}
-      case $msg in
-        'deploy-start')
-          echo '::set-output name=MSG::Deployment initiated on ${{ inputs.msg-arg }} &#x267B;'
-          status='info'
-          ;;
-        'build-failed')
-          echo '::set-output name=MSG::Build of ${{ inputs.msg-arg }} has failed &#x1F4E6 &#x274C;'
-          status='warning'
-          ;;
-        'deploy-failed')
-          echo '::set-output name=MSG::Deploy on ${{ inputs.msg-arg }} has failed &#x1F680 &#x274C;'
-          status='error'
-          ;;
-        'deploy-succeed')
-          echo '::set-output name=MSG::Deployment on ${{ inputs.msg-arg }} has succeed &#x1F680 &#x2705;'
-          status='success'
-          ;;
-        'deploy-cancelled')
-          echo '::set-output name=MSG::Deployment on ${{ inputs.msg-arg }} was canceled &#x126A0 &#x1F6D1;'
-          status='warning'
-          ;;
-        *) echo '::set-output name=MSG::$msg' ;;
-      esac
-      case $status in
-        'warning') echo '::set-output name=COLOR::ffc107' ;;
-        'error') echo '::set-output name=COLOR::dc3545' ;;
-        'success') echo '::set-output name=COLOR::28a745' ;;
-        *) echo '::set-output name=COLOR::007bff' ;;
-      esac
+    # NOTE: Using a fixed repo for now, see https://github.com/jdcargile/ms-teams-notification/issues/4
+    # Notifying deployment start
+    - uses: mateuschaves/notify-ms-teams-github-fix@master
+      with:
+        github-token: ${{ inputs.gh-token }}
+        ms-teams-webhook-uri: ${{ inputs.ms-teams-webhook-uri }}
+        notification-summary: ${{ steps.compile-params.outputs.MSG }}
+        notification-color: ${{ steps.compile-params.outputs.COLOR }}
+        timezone: ${{ inputs.timezone }}
 
-
-  # NOTE: Using a fixed repo for now, see https://github.com/jdcargile/ms-teams-notification/issues/4
-  # Notifying deployment start
-  - uses:  mateuschaves/notify-ms-teams-github-fix@master
-    with:
-      github-token: ${{ inputs.gh-token }}
-      ms-teams-webhook-uri: ${{ inputs.ms-teams-webhook-uri }}
-      notification-summary: ${{ steps.compile-params.outputs.MSG }}
-      notification-color: ${{ steps.compile-params.outputs.COLOR }}
-      timezone: ${{ inputs.timezone }}
-
-    # # this is the new step
-    # - uses: toko-bifrost/ms-teams-deploy-card@master
-    #   with:
-    #     # Main config
-    #     github-token: ${{ inputs.gh-token }}
-    #     webhook-uri: ${{ inputs.ms-teams-webhook-uri }}
-    #     timezone: ${{ inputs.timezone }}
-    #     environment: ${{ inputs.environment }}
-    #     # Layout settings
-    #     card-layout-start: 'cozy'
-    #     card-layout-exit: 'compact'
-    #     view-status-action-text: 'View progress'
-    #     review-diffs-action-text: 'Review changes'
+      # # this is the new step
+      # - uses: toko-bifrost/ms-teams-deploy-card@master
+      #   with:
+      #     # Main config
+      #     github-token: ${{ inputs.gh-token }}
+      #     webhook-uri: ${{ inputs.ms-teams-webhook-uri }}
+      #     timezone: ${{ inputs.timezone }}
+      #     environment: ${{ inputs.environment }}
+      #     # Layout settings
+      #     card-layout-start: 'cozy'
+      #     card-layout-exit: 'compact'
+      #     view-status-action-text: 'View progress'
+      #     review-diffs-action-text: 'Review changes'
