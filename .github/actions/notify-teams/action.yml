@@ -64,10 +64,10 @@ runs:
           *) echo 'MSG=$msg' >> $GITHUB_OUTPUT ;;
         esac
         case $status in
-          'warning') echo 'COLOR::ffc107' >> $GITHUB_OUTPUT ;;
-          'error') echo 'COLOR::dc3545' >> $GITHUB_OUTPUT ;;
-          'success') echo 'COLOR::28a745' >> $GITHUB_OUTPUT ;;
-          *) echo 'COLOR::007bff' >> $GITHUB_OUTPUT ;;
+          'warning') echo 'COLOR=ffc107' >> $GITHUB_OUTPUT ;;
+          'error') echo 'COLOR=dc3545' >> $GITHUB_OUTPUT ;;
+          'success') echo 'COLOR=28a745' >> $GITHUB_OUTPUT ;;
+          *) echo 'COLOR=007bff' >> $GITHUB_OUTPUT ;;
         esac
 
     # NOTE: Using a fixed repo for now, see https://github.com/jdcargile/ms-teams-notification/issues/4
